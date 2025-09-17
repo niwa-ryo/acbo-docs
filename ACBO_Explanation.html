@@ -116,6 +116,19 @@
         strong {
             color: #2c3e50;
         }
+        .math-inline {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .equation-box {
+            background-color: #f0f0f0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
@@ -130,14 +143,14 @@
 <ul>
     <li><strong>長所</strong>: 低コスト領域を重点的に探索、計算効率が良い</li>
     <li><strong>短所</strong>: 最適解が高コスト領域にある場合、性能が著しく低下</li>
-    <li><strong>仕組み</strong>: EI値をコストで除算（α_EIps(x) = α_EI(x) / c(x)）</li>
+    <li><strong>仕組み</strong>: EI値をコストで除算（$\alpha_{EIps}(x) = \alpha_{EI}(x) / c(x)$）</li>
 </ul>
 
 <h4>EI-cool (CArBO)</h4>
 <ul>
     <li><strong>長所</strong>: 残り予算に応じて戦略を切り替え</li>
     <li><strong>短所</strong>: 初期はEIps的動作で固定、柔軟性に欠ける</li>
-    <li><strong>仕組み</strong>: クーリングパラメータλで段階的に切り替え</li>
+    <li><strong>仕組み</strong>: クーリングパラメータ$\lambda$で段階的に切り替え</li>
 </ul>
 
 <h3>ACBOの解決策</h3>
@@ -199,9 +212,9 @@ flowchart TB
 
 <h4>Thompson Sampling</h4>
 <ol>
-    <li>各GPから関数をサンプル：f̃m ~ GPm</li>
-    <li>最大値を計算：f̃m* = max f̃m(x)</li>
-    <li>より高いf*を持つ獲得関数を選択</li>
+    <li>各GPから関数をサンプル：$\tilde{f}_m \sim GP_m$</li>
+    <li>最大値を計算：$\tilde{f}_m^* = \max \tilde{f}_m(x)$</li>
+    <li>より高い$f^*$を持つ獲得関数を選択</li>
 </ol>
 
 <h2>3. なぜACBOが優れているのか</h2>
@@ -319,28 +332,28 @@ flowchart TB
 <pre><code class="language-python"># 疑似コード
 while used_budget < B:
     # 4つのGPを構築
-    fit GPf, GPc using Dt-1  # 目的関数とコスト
-    fit GP1 using Dt-1,1     # EI用データ
-    fit GP2 using Dt-1,2     # EIps用データ
+    fit GP_f, GP_c using D_{t-1}  # 目的関数とコスト
+    fit GP_1 using D_{t-1,1}       # EI用データ
+    fit GP_2 using D_{t-1,2}       # EIps用データ
 
     # Thompson Sampling
     for m in {1, 2}:
-        f̃m ~ GPm
-        f̃m* = max f̃m(x)
+        f_tilde_m ~ GP_m
+        f_tilde_m_star = max f_tilde_m(x)
 
     # 獲得関数選択
-    mt = argmax{f̃1*, f̃2*}
+    m_t = argmax{f_tilde_1_star, f_tilde_2_star}
 
     # 次の評価点を決定
-    if mt == 1:
-        xt = argmax EI(x)
+    if m_t == 1:
+        x_t = argmax EI(x)
     else:
-        xt = argmax EIps(x)
+        x_t = argmax EIps(x)
 
     # 評価と更新
-    yt, ct = f(xt), c(xt)
-    Update Dt, Dt,mt
-    used_budget += ct
+    y_t, c_t = f(x_t), c(x_t)
+    Update D_t, D_{t,m_t}
+    used_budget += c_t
 </code></pre>
 
 <h3>実装上の重要点</h3>
