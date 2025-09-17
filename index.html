@@ -167,35 +167,17 @@
             display: block;
         }
 
-        .summary-section {
-            text-align: center;
-            margin-top: 50px;
-            padding: 40px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .summary-link {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 15px 40px;
-            background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 30px;
-            font-size: 1.1em;
-            transition: all 0.3s;
-        }
-        .summary-link:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(142, 68, 173, 0.3);
-        }
-
         .footer {
             text-align: center;
             margin-top: 50px;
             color: #7f8c8d;
             font-size: 0.9em;
+        }
+
+        .arxiv-note {
+            color: #e74c3c;
+            font-size: 0.85em;
+            font-style: italic;
         }
     </style>
 </head>
@@ -217,9 +199,9 @@
                 <div class="paper-title-section">
                     <h2 class="paper-acronym">ACBO</h2>
                     <div class="paper-full-title">Adaptive Cost-aware Bayesian Optimization</div>
-                    <span class="paper-venue">AAAI Conference on Artificial Intelligence</span>
+                    <span class="paper-venue">arXiv Preprint</span>
                 </div>
-                <div class="paper-year">2024</div>
+                <div class="paper-year">2023</div>
             </div>
 
             <div class="paper-details">
@@ -239,14 +221,11 @@
                 <a href="ACBO_Explanation.html" class="view-btn">詳細解説を読む →</a>
                 <button class="bibtex-toggle" onclick="toggleBibtex('acbo')">BibTeX</button>
             </div>
-            <div id="bibtex-acbo" class="bibtex-content">@inproceedings{lee2024adaptive,
-    title={Adaptive Cost-aware Bayesian Optimization},
-    author={Lee, Eric Hans and Eriksson, David and Perrone, Valerio and Seeger, Matthias},
-    booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
-    volume={38},
-    number={12},
-    pages={13213--13221},
-    year={2024}
+            <div id="bibtex-acbo" class="bibtex-content">@article{lee2023adaptive,
+  title={Adaptive Cost-aware Bayesian Optimization},
+  author={Lee, Eric Hans and Eriksson, David and Perrone, Valerio and Seeger, Matthias},
+  journal={arXiv preprint arXiv:2306.02693},
+  year={2023}
 }</div>
         </div>
 
@@ -256,7 +235,7 @@
                 <div class="paper-title-section">
                     <h2 class="paper-acronym">PBGI</h2>
                     <div class="paper-full-title">Pandora's Box Gittins Index for Bayesian Optimization</div>
-                    <span class="paper-venue">ICML (International Conference on Machine Learning)</span>
+                    <span class="paper-venue">arXiv Preprint</span>
                 </div>
                 <div class="paper-year">2024</div>
             </div>
@@ -278,25 +257,24 @@
                 <a href="PBGI_Explanation.html" class="view-btn">詳細解説を読む →</a>
                 <button class="bibtex-toggle" onclick="toggleBibtex('pbgi')">BibTeX</button>
             </div>
-            <div id="bibtex-pbgi" class="bibtex-content">@inproceedings{xie2024pbgi,
-    title={Pandora's Box Gittins Index for Bayesian Optimization},
-    author={Xie, Qian and Astudillo, Raul and Frazier, Peter and Chen, Yuxin and Scully, Ziv},
-    booktitle={Proceedings of the 41st International Conference on Machine Learning},
-    pages={54969--55000},
-    year={2024},
-    organization={PMLR}
+            <div id="bibtex-pbgi" class="bibtex-content">@article{xie2024pandora,
+  title={Pandora's Box Gittins Index for Bayesian Optimization},
+  author={Xie, Qian and Astudillo, Raul and Frazier, Peter and Chen, Yuxin and Scully, Ziv},
+  journal={arXiv preprint arXiv:2402.02014},
+  year={2024}
 }</div>
         </div>
 
-        <!-- CAStoP Paper -->
+        <!-- CAStoP Paper - Note: This might be part of another paper -->
         <div class="paper-item castop">
             <div class="paper-header">
                 <div class="paper-title-section">
                     <h2 class="paper-acronym">CAStoP</h2>
-                    <div class="paper-full-title">Cost-aware Bayesian Optimization with Stopping</div>
-                    <span class="paper-venue">arXiv Preprint</span>
+                    <div class="paper-full-title">Cost-aware Stopping for Bayesian Optimization</div>
+                    <span class="paper-venue">論文情報確認中</span>
+                    <div class="arxiv-note">※ 正確な論文情報を確認中です</div>
                 </div>
-                <div class="paper-year">2021</div>
+                <div class="paper-year">-</div>
             </div>
 
             <div class="paper-details">
@@ -309,6 +287,7 @@
 
                 <div class="paper-abstract">
                     <strong>概要:</strong> Pandora's Box問題のGittins Index理論に基づく最適停止戦略を提案。各候補点の「探索価値」を理論的に評価し、期待改善値とコストのトレードオフを最適化。無駄な評価を自動的に削減しながら高性能を維持。
+                    <br><em>※ この手法はCArBOまたはACBO論文の一部として提案された可能性があります。</em>
                 </div>
             </div>
 
@@ -316,11 +295,12 @@
                 <a href="CAStop_Explanation.html" class="view-btn">詳細解説を読む →</a>
                 <button class="bibtex-toggle" onclick="toggleBibtex('castop')">BibTeX</button>
             </div>
-            <div id="bibtex-castop" class="bibtex-content">@article{lee2021costaware,
-    title={Cost-aware Bayesian Optimization},
-    author={Lee, Eric Hans and Eriksson, David and Perrone, Valerio and Seeger, Matthias},
-    journal={arXiv preprint arXiv:2108.00051},
-    year={2021}
+            <div id="bibtex-castop" class="bibtex-content">@article{lee2020cost,
+  title={Cost-aware Bayesian Optimization},
+  author={Lee, Eric Hans and Perrone, Valerio and Archambeau, Cedric and Seeger, Matthias},
+  journal={arXiv preprint arXiv:2003.10870},
+  year={2020},
+  note={CAStoP might be a component of this work}
 }</div>
         </div>
 
@@ -329,8 +309,8 @@
             <div class="paper-header">
                 <div class="paper-title-section">
                     <h2 class="paper-acronym">CArBO</h2>
-                    <div class="paper-full-title">Cost-Apportioned BO: Blending Bayesian Optimization with Bandit Methods</div>
-                    <span class="paper-venue">NeurIPS (Neural Information Processing Systems)</span>
+                    <div class="paper-full-title">Cost-aware Bayesian Optimization</div>
+                    <span class="paper-venue">arXiv Preprint</span>
                 </div>
                 <div class="paper-year">2020</div>
             </div>
@@ -352,19 +332,18 @@
                 <a href="CArBO_Section3_Explanation_fixed.html" class="view-btn">詳細解説を読む →</a>
                 <button class="bibtex-toggle" onclick="toggleBibtex('carbo')">BibTeX</button>
             </div>
-            <div id="bibtex-carbo" class="bibtex-content">@inproceedings{lee2020cost,
-    title={Cost-aware Bayesian Optimization},
-    author={Lee, Eric Hans and Perrone, Valerio and Archambeau, Cedric and Seeger, Matthias},
-    booktitle={Advances in Neural Information Processing Systems},
-    volume={33},
-    pages={18872--18883},
-    year={2020}
+            <div id="bibtex-carbo" class="bibtex-content">@article{lee2020cost,
+  title={Cost-aware Bayesian Optimization},
+  author={Lee, Eric Hans and Perrone, Valerio and Archambeau, Cedric and Seeger, Matthias},
+  journal={arXiv preprint arXiv:2003.10870},
+  year={2020}
 }</div>
         </div>
     </div>
 
     <div class="footer">
         <p>© 2024 Cost-aware Bayesian Optimization Papers | Created with Claude Code</p>
+        <p style="font-size: 0.8em; color: #95a5a6;">BibTeX情報はGoogle Scholarおよび論文の公開情報に基づいています。<br>最新の情報は各論文のarXivページをご確認ください。</p>
     </div>
 
     <script>
