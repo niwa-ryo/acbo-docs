@@ -58,4 +58,4 @@ pushすると自動的にGitHub Pagesが更新されます（1-2分かかりま�
 
 ## 📝 ライセンス
 
-学術目的での使用を推奨します。
+学術目的での使用を推奨します。# Published via GitHub Pages
