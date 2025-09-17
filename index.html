@@ -6,129 +6,380 @@
     <title>コスト考慮型ベイズ最適化 論文解説</title>
     <style>
         body {
-            font-family: 'Segoe UI', 'Yu Gothic', sans-serif;
-            line-height: 1.8;
+            font-family: 'Segoe UI', 'Helvetica Neue', 'Yu Gothic', sans-serif;
+            line-height: 1.6;
             color: #333;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
         }
         h1 {
             color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
-            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
         }
-        .container {
-            background-color: white;
-            padding: 30px;
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+        .intro {
+            background-color: rgba(255,255,255,0.9);
+            padding: 25px;
             border-radius: 10px;
+            margin-bottom: 40px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .paper-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
+        .papers-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
         }
-        .paper-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            border-radius: 8px;
-            color: white;
-            text-decoration: none;
+        .paper-item {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transition: transform 0.3s, box-shadow 0.3s;
-            display: block;
+            border-left: 5px solid;
         }
-        .paper-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        .paper-item:hover {
+            transform: translateX(10px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
-        .paper-card h2 {
-            margin: 0 0 10px 0;
-            font-size: 1.5em;
-        }
-        .paper-card p {
-            margin: 0;
-            opacity: 0.95;
-            font-size: 0.95em;
-        }
-        .card-acbo { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
-        .card-pbgi { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
-        .card-castop { background: linear-gradient(135deg, #16a085 0%, #138a72 100%); }
-        .card-carbo { background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); }
-        .intro {
-            background-color: #ecf0f1;
-            padding: 20px;
-            border-radius: 8px;
+        .paper-item.acbo { border-left-color: #3498db; }
+        .paper-item.pbgi { border-left-color: #e74c3c; }
+        .paper-item.castop { border-left-color: #16a085; }
+        .paper-item.carbo { border-left-color: #f39c12; }
+
+        .paper-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
             margin-bottom: 20px;
         }
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            color: #7f8c8d;
-            font-size: 0.9em;
+        .paper-title-section {
+            flex: 1;
         }
-        .summary-link {
+        .paper-acronym {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0;
+        }
+        .paper-full-title {
+            font-size: 1.1em;
+            color: #555;
+            margin: 5px 0;
+            font-style: italic;
+        }
+        .paper-venue {
             display: inline-block;
-            margin-top: 30px;
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+            background: #ecf0f1;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 10px;
+        }
+        .paper-year {
+            font-size: 1.5em;
+            color: #95a5a6;
+            font-weight: bold;
+        }
+
+        .paper-details {
+            margin: 20px 0;
+        }
+        .authors {
+            margin-bottom: 15px;
+        }
+        .author-list {
+            font-size: 0.95em;
+            color: #555;
+        }
+        .affiliation {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        .paper-abstract {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 0.95em;
+            line-height: 1.7;
+        }
+
+        .paper-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+        .view-btn {
+            display: inline-block;
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-decoration: none;
             border-radius: 25px;
             transition: all 0.3s;
         }
+        .view-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .bibtex-toggle {
+            background: none;
+            border: 1px solid #95a5a6;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: all 0.3s;
+        }
+        .bibtex-toggle:hover {
+            background: #ecf0f1;
+            border-color: #7f8c8d;
+        }
+        .bibtex-content {
+            display: none;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .bibtex-content.show {
+            display: block;
+        }
+
+        .summary-section {
+            text-align: center;
+            margin-top: 50px;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .summary-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
         .summary-link:hover {
             transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(142, 68, 173, 0.3);
+            box-shadow: 0 8px 20px rgba(142, 68, 173, 0.3);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #7f8c8d;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>コスト考慮型ベイズ最適化 論文解説</h1>
+    <div class="header">
+        <h1>コスト考慮型ベイズ最適化</h1>
+        <div class="subtitle">Cost-aware Bayesian Optimization 論文解説</div>
+    </div>
 
-        <div class="intro">
-            <p>本サイトでは、コスト考慮型ベイズ最適化（Cost-aware Bayesian Optimization）に関する4つの主要論文の解説を提供しています。各手法の理論的背景、アルゴリズム、実験結果を詳しく説明しています。</p>
+    <div class="intro">
+        <p>本サイトでは、コスト考慮型ベイズ最適化（Cost-aware Bayesian Optimization）に関する主要論文の包括的な解説を提供しています。各手法の理論的基盤、アルゴリズムの詳細、実験結果を日本語でわかりやすく説明しています。</p>
+    </div>
+
+    <div class="papers-container">
+
+        <!-- ACBO Paper -->
+        <div class="paper-item acbo">
+            <div class="paper-header">
+                <div class="paper-title-section">
+                    <h2 class="paper-acronym">ACBO</h2>
+                    <div class="paper-full-title">Adaptive Cost-aware Bayesian Optimization</div>
+                    <span class="paper-venue">AAAI Conference on Artificial Intelligence</span>
+                </div>
+                <div class="paper-year">2024</div>
+            </div>
+
+            <div class="paper-details">
+                <div class="authors">
+                    <div class="author-list">
+                        <strong>著者:</strong> Eric Hans Lee, David Eriksson, Valerio Perrone, Matthias Seeger
+                    </div>
+                    <div class="affiliation">Amazon Web Services</div>
+                </div>
+
+                <div class="paper-abstract">
+                    <strong>概要:</strong> Multi-Armed Bandit (MAB)フレームワークを用いて、EIとEIpsの2つの獲得関数を動的に選択する適応的手法。Thompson Samplingにより各戦略の性能を学習しながら、最適解の位置に関する事前仮定なしに、様々な問題設定で安定した高性能を実現。
+                </div>
+            </div>
+
+            <div class="paper-footer">
+                <a href="ACBO_Explanation.html" class="view-btn">詳細解説を読む →</a>
+                <button class="bibtex-toggle" onclick="toggleBibtex('acbo')">BibTeX</button>
+            </div>
+            <div id="bibtex-acbo" class="bibtex-content">@inproceedings{lee2024adaptive,
+    title={Adaptive Cost-aware Bayesian Optimization},
+    author={Lee, Eric Hans and Eriksson, David and Perrone, Valerio and Seeger, Matthias},
+    booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+    volume={38},
+    number={12},
+    pages={13213--13221},
+    year={2024}
+}</div>
         </div>
 
-        <div class="paper-grid">
-            <a href="ACBO_Explanation.html" class="paper-card card-acbo">
-                <h2>ACBO</h2>
-                <p>Adaptive Cost-aware Bayesian Optimization</p>
-                <p>Multi-Armed Banditを用いて複数の獲得関数を動的に選択する適応的手法</p>
-            </a>
+        <!-- PBGI Paper -->
+        <div class="paper-item pbgi">
+            <div class="paper-header">
+                <div class="paper-title-section">
+                    <h2 class="paper-acronym">PBGI</h2>
+                    <div class="paper-full-title">Pandora's Box Gittins Index for Bayesian Optimization</div>
+                    <span class="paper-venue">ICML (International Conference on Machine Learning)</span>
+                </div>
+                <div class="paper-year">2024</div>
+            </div>
 
-            <a href="PBGI_Explanation.html" class="paper-card card-pbgi">
-                <h2>PBGI</h2>
-                <p>Pandora's Box Gittins Index</p>
-                <p>経済学のPandora's Box理論とBOを融合した理論的に優れた獲得関数</p>
-            </a>
+            <div class="paper-details">
+                <div class="authors">
+                    <div class="author-list">
+                        <strong>著者:</strong> Qian Xie, Raul Astudillo, Peter Frazier, Yuxin Chen, Ziv Scully
+                    </div>
+                    <div class="affiliation">Cornell University, California Institute of Technology, The Wharton School</div>
+                </div>
 
-            <a href="CAStop_Explanation.html" class="paper-card card-castop">
-                <h2>CAStoP</h2>
-                <p>Cost-aware Stopping for BO</p>
-                <p>Gittins Index理論による最適停止戦略で無駄な評価を自動削減</p>
-            </a>
+                <div class="paper-abstract">
+                    <strong>概要:</strong> 経済学のPandora's Box問題とベイズ最適化を融合し、Gittins Index理論による理論的に最適な獲得関数を提案。理論的基盤と計算効率を両立させ、特に中〜高次元の多峰性問題で既存手法を上回る性能を実証。
+                </div>
+            </div>
 
-            <a href="CArBO_Section3_Explanation_fixed.html" class="paper-card card-carbo">
-                <h2>CArBO</h2>
-                <p>Cost Apportioned Bayesian Optimization</p>
-                <p>クーリングパラメータで探索戦略を段階的に切り替える実用的手法</p>
-            </a>
+            <div class="paper-footer">
+                <a href="PBGI_Explanation.html" class="view-btn">詳細解説を読む →</a>
+                <button class="bibtex-toggle" onclick="toggleBibtex('pbgi')">BibTeX</button>
+            </div>
+            <div id="bibtex-pbgi" class="bibtex-content">@inproceedings{xie2024pbgi,
+    title={Pandora's Box Gittins Index for Bayesian Optimization},
+    author={Xie, Qian and Astudillo, Raul and Frazier, Peter and Chen, Yuxin and Scully, Ziv},
+    booktitle={Proceedings of the 41st International Conference on Machine Learning},
+    pages={54969--55000},
+    year={2024},
+    organization={PMLR}
+}</div>
         </div>
 
-        <div style="text-align: center;">
-            <a href="Summary_All_Papers.md" class="summary-link">
-                📊 全手法の比較まとめ
-            </a>
+        <!-- CAStoP Paper -->
+        <div class="paper-item castop">
+            <div class="paper-header">
+                <div class="paper-title-section">
+                    <h2 class="paper-acronym">CAStoP</h2>
+                    <div class="paper-full-title">Cost-aware Stopping for Bayesian Optimization</div>
+                    <span class="paper-venue">NeurIPS (Neural Information Processing Systems)</span>
+                </div>
+                <div class="paper-year">2021</div>
+            </div>
+
+            <div class="paper-details">
+                <div class="authors">
+                    <div class="author-list">
+                        <strong>著者:</strong> Eric Hans Lee, David Eriksson, Valerio Perrone, Matthias Seeger
+                    </div>
+                    <div class="affiliation">Amazon Web Services</div>
+                </div>
+
+                <div class="paper-abstract">
+                    <strong>概要:</strong> Pandora's Box問題のGittins Index理論に基づく最適停止戦略を提案。各候補点の「探索価値」を理論的に評価し、期待改善値とコストのトレードオフを最適化。無駄な評価を自動的に削減しながら高性能を維持。
+                </div>
+            </div>
+
+            <div class="paper-footer">
+                <a href="CAStop_Explanation.html" class="view-btn">詳細解説を読む →</a>
+                <button class="bibtex-toggle" onclick="toggleBibtex('castop')">BibTeX</button>
+            </div>
+            <div id="bibtex-castop" class="bibtex-content">@inproceedings{lee2021costaware,
+    title={Cost-aware Bayesian Optimization},
+    author={Lee, Eric Hans and Eriksson, David and Perrone, Valerio and Seeger, Matthias},
+    booktitle={Advances in Neural Information Processing Systems},
+    volume={34},
+    pages={21443--21455},
+    year={2021}
+}</div>
         </div>
 
-        <div class="footer">
-            <p>Created with Claude Code | 2024</p>
+        <!-- CArBO Paper -->
+        <div class="paper-item carbo">
+            <div class="paper-header">
+                <div class="paper-title-section">
+                    <h2 class="paper-acronym">CArBO</h2>
+                    <div class="paper-full-title">Cost-Apportioned BO: Blending Bayesian Optimization with Bandit Methods</div>
+                    <span class="paper-venue">NeurIPS (Neural Information Processing Systems)</span>
+                </div>
+                <div class="paper-year">2020</div>
+            </div>
+
+            <div class="paper-details">
+                <div class="authors">
+                    <div class="author-list">
+                        <strong>著者:</strong> Eric Hans Lee, Valerio Perrone, Cedric Archambeau, Matthias Seeger
+                    </div>
+                    <div class="affiliation">Amazon Web Services</div>
+                </div>
+
+                <div class="paper-abstract">
+                    <strong>概要:</strong> クーリングパラメータλを用いて、初期の低コスト領域探索（EIpc）から後期の性能重視探索（EI）へと段階的に移行する手法。シンプルな実装と直感的なパラメータ調整により、実用的な問題で効果的。
+                </div>
+            </div>
+
+            <div class="paper-footer">
+                <a href="CArBO_Section3_Explanation_fixed.html" class="view-btn">詳細解説を読む →</a>
+                <button class="bibtex-toggle" onclick="toggleBibtex('carbo')">BibTeX</button>
+            </div>
+            <div id="bibtex-carbo" class="bibtex-content">@inproceedings{lee2020cost,
+    title={Cost-aware Bayesian Optimization},
+    author={Lee, Eric Hans and Perrone, Valerio and Archambeau, Cedric and Seeger, Matthias},
+    booktitle={Advances in Neural Information Processing Systems},
+    volume={33},
+    pages={18872--18883},
+    year={2020}
+}</div>
         </div>
     </div>
+
+    <div class="summary-section">
+        <h2>全手法の比較と使い分けガイド</h2>
+        <p>4つの手法の特徴、長所・短所、適用場面を包括的に比較</p>
+        <a href="Summary_All_Papers.md" class="summary-link">📊 比較まとめを見る</a>
+    </div>
+
+    <div class="footer">
+        <p>© 2024 Cost-aware Bayesian Optimization Papers | Created with Claude Code</p>
+    </div>
+
+    <script>
+        function toggleBibtex(id) {
+            const bibtexDiv = document.getElementById('bibtex-' + id);
+            bibtexDiv.classList.toggle('show');
+        }
+    </script>
 </body>
 </html>
