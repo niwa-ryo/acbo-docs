@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACBO (Adaptive Cost-Aware Bayesian Optimization) 解説</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Yu Gothic', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #95a5a6;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        h4 {
+            color: #95a5a6;
+            margin-top: 15px;
+        }
+        .mermaid {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #ecf0f1;
+            color: #e74c3c;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            color: #ecf0f1;
+            padding: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+        .summary {
+            background-color: #d1ecf1;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+            margin: 30px 0;
+        }
+        strong {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+
+<h1>ACBO (Adaptive Cost-Aware Bayesian Optimization) 解説</h1>
+
+<h2>1. ACBOの革新</h2>
+
+<h3>従来のコスト考慮BO手法の問題点</h3>
+
+<h4>EIps (Expected Improvement per second)</h4>
+<ul>
+    <li><strong>長所</strong>: 低コスト領域を重点的に探索、計算効率が良い</li>
+    <li><strong>短所</strong>: 最適解が高コスト領域にある場合、性能が著しく低下</li>
+    <li><strong>仕組み</strong>: EI値をコストで除算（α_EIps(x) = α_EI(x) / c(x)）</li>
+</ul>
+
+<h4>EI-cool (CArBO)</h4>
+<ul>
+    <li><strong>長所</strong>: 残り予算に応じて戦略を切り替え</li>
+    <li><strong>短所</strong>: 初期はEIps的動作で固定、柔軟性に欠ける</li>
+    <li><strong>仕組み</strong>: クーリングパラメータλで段階的に切り替え</li>
+</ul>
+
+<h3>ACBOの解決策</h3>
+
+<div class="highlight">
+<strong>「Multi-Armed Bandit (MAB)を用いて、EIとEIpsを動的に選択」</strong>
+<ul>
+    <li>最適解の位置（低コスト/高コスト領域）を事前に仮定しない</li>
+    <li>Thompson Samplingで各戦略の性能を学習しながら適応的に選択</li>
+    <li>結果：様々な問題設定で安定した高性能を実現</li>
+</ul>
+</div>
+
+<h2>2. ACBOの核心：MABによる獲得関数選択</h2>
+
+<h3>2.1 問題設定</h3>
+
+<pre><code>目的：限られた予算B内で、ブラックボックス関数f(x)を最大化
+制約：各評価にコストc(x)が発生、総コスト ≤ B</code></pre>
+
+<h3>2.2 アルゴリズムの流れ</h3>
+
+<div class="mermaid">
+flowchart TB
+    Start([開始])
+    Start --> Init["初期観測データD0<br/>予算B設定"]
+
+    Init --> Loop{予算内？}
+
+    Loop -->|はい| BuildGPs["4つのGPを構築<br/>・GPf: 目的関数<br/>・GPc: コスト関数<br/>・GP1: EI用報酬<br/>・GP2: EIps用報酬"]
+
+    BuildGPs --> Sample["各GPから報酬をサンプリング<br/>f1* ~ GP1<br/>f2* ~ GP2"]
+
+    Sample --> Select["Thompson Sampling<br/>mt = argmax{f1*, f2*}"]
+
+    Select --> Optimize["選択された獲得関数を最大化<br/>xt = argmax αmt(x)"]
+
+    Optimize --> Evaluate["評価実行<br/>yt = f(xt)<br/>ct = c(xt)"]
+
+    Evaluate --> Update["データ更新<br/>Dt = Dt-1 ∪ {xt, yt, ct}<br/>予算消費"]
+
+    Update --> Loop
+
+    Loop -->|いいえ| End([最適解を返す])
+
+    style Start fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
+    style End fill:#ffebee,stroke:#c62828,stroke-width:3px
+    style Select fill:#fff3e0,stroke:#ef6c00,stroke-width:3px
+    style BuildGPs fill:#e3f2fd,stroke:#1565c0,stroke-width:3px
+</div>
+
+<h3>2.3 報酬モデリングの詳細</h3>
+
+<h4>各獲得関数の報酬分布</h4>
+<ul>
+    <li><strong>EI用（GP1）</strong>: EIで取得したデータから最大値f*の事後分布を学習</li>
+    <li><strong>EIps用（GP2）</strong>: EIpsで取得したデータから最大値f*の事後分布を学習</li>
+</ul>
+
+<h4>Thompson Sampling</h4>
+<ol>
+    <li>各GPから関数をサンプル：f̃m ~ GPm</li>
+    <li>最大値を計算：f̃m* = max f̃m(x)</li>
+    <li>より高いf*を持つ獲得関数を選択</li>
+</ol>
+
+<h2>3. なぜACBOが優れているのか</h2>
+
+<h3>3.1 適応性のメカニズム</h3>
+
+<div class="mermaid">
+flowchart LR
+    Case1["ケース1: 最適解が低コスト領域"]
+    Case1 --> EIpsGood["EIpsが良い性能<br/>→GP2の報酬が高い<br/>→EIpsが多く選択される"]
+
+    Case2["ケース2: 最適解が高コスト領域"]
+    Case2 --> EIGood["EIが良い性能<br/>→GP1の報酬が高い<br/>→EIが多く選択される"]
+
+    Case3["ケース3: 最適解が中間コスト領域"]
+    Case3 --> Balance["状況に応じて<br/>EIとEIpsを切り替え"]
+
+    style Case1 fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Case2 fill:#ffebee,stroke:#c62828,stroke-width:2px
+    style Case3 fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+</div>
+
+<h3>3.2 収束性の保証</h3>
+
+<ol>
+    <li><strong>EIpsが停滞した場合</strong>
+        <ul>
+            <li>GP2の報酬が向上しなくなる</li>
+            <li>Thompson Samplingの理論により「飽和アーム」として扱われる</li>
+            <li>自動的にEIへ切り替わる</li>
+        </ul>
+    </li>
+    <li><strong>最適戦略の学習</strong>
+        <ul>
+            <li>反復が進むにつれ、各戦略の真の性能が明確に</li>
+            <li>より良い戦略が高確率で選択されるように収束</li>
+        </ul>
+    </li>
+</ol>
+
+<h2>4. 実験結果の要点</h2>
+
+<h3>4.1 合成関数での評価</h3>
+
+<table>
+    <tr>
+        <th>関数</th>
+        <th>次元</th>
+        <th>ACBOの優位性</th>
+    </tr>
+    <tr>
+        <td>Rastrigin</td>
+        <td>3</td>
+        <td>全予算領域で最良または同等</td>
+    </tr>
+    <tr>
+        <td>Alpine</td>
+        <td>4</td>
+        <td>後半で大幅に優位</td>
+    </tr>
+    <tr>
+        <td>Ackley</td>
+        <td>5</td>
+        <td>高次元で特に効果的</td>
+    </tr>
+    <tr>
+        <td>Hartman</td>
+        <td>6</td>
+        <td>EI/EIps単独より安定</td>
+    </tr>
+    <tr>
+        <td>Michalewicz</td>
+        <td>10</td>
+        <td>複雑な問題で圧倒的優位</td>
+    </tr>
+</table>
+
+<h3>4.2 実世界応用</h3>
+
+<h4>ハイパーパラメータ最適化（21個のUCIデータセット）</h4>
+<ul>
+    <li><strong>結果</strong>: 21データセット中12個で既存手法と同等、4個で優位</li>
+    <li><strong>特徴</strong>: 最適解のコストが未知な状況で安定した性能</li>
+</ul>
+
+<h4>ロボット探査シミュレーション</h4>
+<ul>
+    <li><strong>タスク</strong>: 銅濃度が最大の地点を探索</li>
+    <li><strong>コスト</strong>: 掘削深度に比例</li>
+    <li><strong>結果</strong>: 予算の80%使用後、他手法を大幅に上回る性能</li>
+</ul>
+
+<h3>4.3 性能向上の要因</h3>
+
+<div class="mermaid">
+flowchart TB
+    Problem["問題：最適解の位置が未知"]
+
+    Problem --> EI["EI戦略<br/>コスト無視で探索"]
+    Problem --> EIps["EIps戦略<br/>低コスト偏重"]
+    Problem --> ACBO["ACBO戦略<br/>適応的選択"]
+
+    EI --> EIResult["高コスト最適解○<br/>低コスト最適解×"]
+    EIps --> EIpsResult["高コスト最適解×<br/>低コスト最適解○"]
+    ACBO --> ACBOResult["高コスト最適解○<br/>低コスト最適解○"]
+
+    style ACBO fill:#fff3e0,stroke:#ef6c00,stroke-width:3px
+    style ACBOResult fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
+</div>
+
+<h2>5. 実装のポイント</h2>
+
+<h3>Algorithm 1: ACBO</h3>
+
+<pre><code class="language-python"># 疑似コード
+while used_budget < B:
+    # 4つのGPを構築
+    fit GPf, GPc using Dt-1  # 目的関数とコスト
+    fit GP1 using Dt-1,1     # EI用データ
+    fit GP2 using Dt-1,2     # EIps用データ
+
+    # Thompson Sampling
+    for m in {1, 2}:
+        f̃m ~ GPm
+        f̃m* = max f̃m(x)
+
+    # 獲得関数選択
+    mt = argmax{f̃1*, f̃2*}
+
+    # 次の評価点を決定
+    if mt == 1:
+        xt = argmax EI(x)
+    else:
+        xt = argmax EIps(x)
+
+    # 評価と更新
+    yt, ct = f(xt), c(xt)
+    Update Dt, Dt,mt
+    used_budget += ct
+</code></pre>
+
+<h3>実装上の重要点</h3>
+
+<ol>
+    <li><strong>GPの構築</strong>: Squared Exponential kernelを使用</li>
+    <li><strong>Thompson Sampling</strong>: 1000個のランダムフーリエ特徴量を使用</li>
+    <li><strong>最適化</strong>: multi-start L-BFGSまたはDIRECT</li>
+    <li><strong>初期点</strong>: すべての手法で同一の初期点セットを使用</li>
+</ol>
+
+<h2>6. ACBOの意義と今後の展開</h2>
+
+<h3>主要な貢献</h3>
+
+<ol>
+    <li><strong>柔軟性</strong>: 最適解の位置を事前に仮定不要</li>
+    <li><strong>理論的保証</strong>: Thompson Samplingによる収束性</li>
+    <li><strong>実用性</strong>: 実装が簡単で拡張可能</li>
+    <li><strong>汎用性</strong>: 様々な問題設定で安定した性能</li>
+</ol>
+
+<h3>拡張の可能性</h3>
+
+<ul>
+    <li>3つ以上の獲得関数の組み合わせ</li>
+    <li>より複雑なコスト構造への対応</li>
+    <li>並列評価への拡張</li>
+</ul>
+
+<div class="summary">
+<h2>まとめ</h2>
+<p>ACBOは、<strong>MABを用いて複数の獲得関数を動的に選択</strong>することで、従来手法の「最適解の位置を仮定する」という制約を克服。実験により、様々な問題設定で<strong>安定かつ高い性能</strong>を実現することを実証。特に<strong>最適解の位置が未知</strong>の実問題において有効な手法。</p>
+</div>
+
+</body>
+</html>

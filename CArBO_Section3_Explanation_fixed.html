@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CArBO: Cost Apportioned BO</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: white;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+            margin-top: 25px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        h4 {
+            color: #95a5a6;
+            margin-top: 15px;
+        }
+        code {
+            background-color: #f6f8fa;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 85%;
+        }
+        pre {
+            background-color: #f6f8fa;
+            padding: 16px;
+            border-radius: 6px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        blockquote {
+            border-left: 4px solid #3498db;
+            margin: 0;
+            padding-left: 20px;
+            color: #6a737d;
+        }
+        ul, ol {
+            padding-left: 2em;
+            margin: 15px 0;
+        }
+        li {
+            margin: 8px 0;
+        }
+        strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .mermaid {
+            text-align: center;
+            margin: 30px 0;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.1em;
+            background: #f6f8fa;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        @media print {
+            body {
+                max-width: 100%;
+                margin: 0;
+                padding: 20px;
+            }
+            .mermaid {
+                page-break-inside: avoid;
+            }
+            h1, h2 {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+    <script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+                inlineMath: [['$','$']],
+                displayMath: [['$$','$$']],
+                processEscapes: true
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>CArBO: Cost Apportioned BO</h1>
+
+    <h2>1. CArBOの革新</h2>
+
+    <h3>従来手法の問題</h3>
+    <ul>
+        <li><strong>EI</strong>：コストを無視、高コスト点ばかり評価</li>
+        <li><strong>EIpc</strong>：最適解が高コストだと性能悪化</li>
+    </ul>
+
+    <h3>CArBOの解決策</h3>
+    <ol>
+        <li><strong>初期設計</strong>：安い点を多数配置して情報収集</li>
+        <li><strong>コストクーリング</strong>：徐々にコスト制約を緩和</li>
+        <li><strong>結果</strong>：同一予算で約40%のコスト削減</li>
+    </ol>
+
+    <h3>重要な理解</h3>
+    <ul>
+        <li>コスト関数は未知でOK（オンライン学習）</li>
+        <li>100点生成するが評価は1点のみ</li>
+        <li>「安くて遠い」点が自動的に選ばれる仕組み</li>
+        <li>初期は情報収集、後期は最適化に集中</li>
+    </ul>
+
+    <h2>2. CArBOの核心：2段階戦略</h2>
+
+    <p><strong>「初期は目的関数を無視してコスト効率的に情報収集、後期は徐々にコスト制約を緩和して最適解を探索」</strong></p>
+
+    <h3>フェーズ1：初期設計（予算0-12.5%）</h3>
+    <ul>
+        <li><strong>目的</strong>：探索空間の情報収集</li>
+        <li><strong>方法</strong>：目的関数を無視、コスト最優先で安い点を大量配置</li>
+        <li><strong>結果</strong>：同一予算で従来4点→15点の評価が可能</li>
+    </ul>
+
+    <h3>フェーズ2：最適化（予算12.5-100%）</h3>
+    <ul>
+        <li><strong>方法</strong>：EI-cooling（α値が1.0→0.0へ減衰）</li>
+        <li><strong>初期</strong>：コスト重視（EIpc的）</li>
+        <li><strong>後期</strong>：精度重視（EI的）</li>
+    </ul>
+
+    <h3>時間軸での戦略変化</h3>
+    <div class="mermaid">
+flowchart LR
+    Init["初期設計フェーズ<br/>予算: 0-12.5%<br/>目的関数無視<br/>コスト最優先<br/>安い点を大量配置"]
+    Early["最適化初期<br/>予算: 12.5-40%<br/>α ≈ 1.0<br/>EIpc的動作<br/>コスト重視"]
+    Middle["最適化中期<br/>予算: 40-70%<br/>α ≈ 0.5<br/>バランス型<br/>コスト精度両立"]
+    Late["最適化後期<br/>予算: 70-100%<br/>α ≈ 0.0<br/>EI的動作<br/>精度最優先"]
+
+    Init -->|Algorithm 1| Early
+    Early -->|EI-cooling| Middle
+    Middle -->|EI-cooling| Late
+
+    style Init fill:#bbdefb,stroke:#1976d2,stroke-width:3px
+    style Early fill:#ffe0b2,stroke:#f57c00,stroke-width:3px
+    style Middle fill:#e1bee7,stroke:#7b1fa2,stroke-width:3px
+    style Late fill:#ffcdd2,stroke:#c62828,stroke-width:3px
+    </div>
+
+    <h2>2. コスト効率的な初期設計（Algorithm 1）</h2>
+
+    <h3>目的と前提</h3>
+    <ul>
+        <li><strong>目的</strong>：限られた予算内で、探索空間を均等にカバーする点集合を構築</li>
+        <li><strong>重要な前提</strong>：コスト関数は未知（評価して初めて判明）</li>
+    </ul>
+
+    <h3>Algorithm 1の動作</h3>
+    <div class="mermaid">
+flowchart TB
+    Start([開始])
+    Start --> Init["初期化<br/>初期予算 = τinit（総予算の1/8）<br/>累積コスト = 0<br/>選択済み点 = [ ]"]
+    Init --> MainLoop{累積コスト < 初期予算？}
+    MainLoop -->|はい| Step1[100個の候補を生成]
+    MainLoop -->|いいえ| End([終了])
+    Step1 --> Step2[99個を削減する処理]
+    Step2 --> Reduction["削減ループ（99回繰り返し）<br/>交互に削除：<br/>・高コストな点を1個削除<br/>・既存点に近い点を1個削除"]
+    Reduction --> Step3["最後の1点が残る<br/>「安くて遠い点」"]
+    Step3 --> Step4["残った1点を実際に評価<br/>モデルを訓練して時間測定"]
+    Step4 --> Step5[累積コストとモデルを更新]
+    Step5 --> MainLoop
+
+    style Start fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
+    style End fill:#ffebee,stroke:#c62828,stroke-width:3px
+    style MainLoop fill:#e1f5fe,stroke:#0277bd,stroke-width:3px
+    style Step4 fill:#fce4ec,stroke:#c2185b,stroke-width:3px
+    style Reduction fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    </div>
+
+    <h3>削除基準の詳細</h3>
+
+    <h4>高コスト削除</h4>
+    <ul>
+        <li>GPモデルで100点のコストを予測（実計算ではない）</li>
+        <li>最も高い予測値の点を削除</li>
+        <li>データ不足時（最初の1-2反復）はランダム削除</li>
+    </ul>
+
+    <h4>近接点削除</h4>
+    <ul>
+        <li>各候補と既存点の距離を計算</li>
+        <li>最も近い点を削除（空間を均等にカバーするため）</li>
+    </ul>
+
+    <h3>重要な理解ポイント</h3>
+    <ul>
+        <li><strong>候補点の「座標」</strong>：ハイパーパラメータの組み合わせ（例：learning_rate=0.01, layers=3）</li>
+        <li><strong>「評価」</strong>：実際にモデルを訓練して性能とコストを測定</li>
+        <li><strong>100点の扱い</strong>：生成（座標）→予測（ミリ秒）→削除（配列操作）→評価（1点のみ、数秒〜数分）</li>
+    </ul>
+
+    <h2>3. コストクーリング（EI-cooling）</h2>
+
+    <h3>定式化</h3>
+
+    <div class="math-block">
+        $$\text{EI-cool}(x) = \frac{\text{EI}(x)}{c(x)^{\alpha}}$$
+    </div>
+
+    <div class="math-block">
+        $$\alpha = \frac{\tau - \tau_k}{\tau - \tau_{\text{init}}}$$
+    </div>
+
+    <p>ここで：</p>
+    <ul>
+        <li>$\tau$：総予算</li>
+        <li>$\tau_k$：現在までの使用予算</li>
+        <li>$\tau_{\text{init}}$：初期設計の予算</li>
+        <li>$\alpha$：1.0 → 0.0 へ減衰するパラメータ</li>
+    </ul>
+
+    <h3>動作原理</h3>
+    <ul>
+        <li><strong>α ≈ 1.0（初期）</strong>：EIpc的、コスト効率最重視</li>
+        <li><strong>α ≈ 0.5（中期）</strong>：バランス型、コストと性能を両立</li>
+        <li><strong>α ≈ 0.0（後期）</strong>：純EI、コスト無視で最適解追求</li>
+    </ul>
+
+    <h2>4. 完全なアルゴリズム（Algorithm 2）</h2>
+    <div class="mermaid">
+flowchart TB
+    Start([開始])
+    Start --> Init["初期化<br/>総予算の1/8を初期設計に割当"]
+    Init --> Phase1{初期設計予算内？}
+    Phase1 -->|はい| InitDesign["Algorithm 1を実行<br/>安い点を1つ選択して評価"]
+    InitDesign --> UpdatePhase1["予算を消費<br/>点を蓄積"]
+    UpdatePhase1 --> Phase1
+    Phase1 -->|いいえ| BuildModel["GPモデル構築<br/>目的関数モデル<br/>コストモデル"]
+    BuildModel --> Phase2{総予算内？}
+    Phase2 -->|はい| CalcAlpha["α値を計算<br/>残り予算に応じて<br/>1.0（初期）→ 0.0（後期）"]
+    CalcAlpha --> SelectNext["次の評価点を選択<br/>EI-cooling獲得関数<br/>コストと性能のバランス"]
+    SelectNext --> EvaluatePoint["点を評価<br/>実際にモデル訓練<br/>時間と精度を測定"]
+    EvaluatePoint --> UpdatePhase2["モデル更新<br/>GPモデルを改善<br/>予算を消費"]
+    UpdatePhase2 --> Phase2
+    Phase2 -->|いいえ| ReturnBest[最良の点を返す]
+    ReturnBest --> End([終了])
+
+    style Start fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
+    style End fill:#ffebee,stroke:#c62828,stroke-width:3px
+    style Phase1 fill:#e3f2fd,stroke:#1565c0,stroke-width:3px
+    style Phase2 fill:#fff3e0,stroke:#ef6c00,stroke-width:3px
+    style EvaluatePoint fill:#fce4ec,stroke:#c2185b,stroke-width:3px
+    style CalcAlpha fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    </div>
+
+</body>
+</html>

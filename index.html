@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コスト考慮型ベイズ最適化 論文解説</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Yu Gothic', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .paper-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .paper-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: block;
+        }
+        .paper-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        .paper-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.5em;
+        }
+        .paper-card p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 0.95em;
+        }
+        .card-acbo { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+        .card-pbgi { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+        .card-castop { background: linear-gradient(135deg, #16a085 0%, #138a72 100%); }
+        .card-carbo { background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); }
+        .intro {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .summary-link {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s;
+        }
+        .summary-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(142, 68, 173, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>コスト考慮型ベイズ最適化 論文解説</h1>
+
+        <div class="intro">
+            <p>本サイトでは、コスト考慮型ベイズ最適化（Cost-aware Bayesian Optimization）に関する4つの主要論文の解説を提供しています。各手法の理論的背景、アルゴリズム、実験結果を詳しく説明しています。</p>
+        </div>
+
+        <div class="paper-grid">
+            <a href="ACBO_Explanation.html" class="paper-card card-acbo">
+                <h2>ACBO</h2>
+                <p>Adaptive Cost-aware Bayesian Optimization</p>
+                <p>Multi-Armed Banditを用いて複数の獲得関数を動的に選択する適応的手法</p>
+            </a>
+
+            <a href="PBGI_Explanation.html" class="paper-card card-pbgi">
+                <h2>PBGI</h2>
+                <p>Pandora's Box Gittins Index</p>
+                <p>経済学のPandora's Box理論とBOを融合した理論的に優れた獲得関数</p>
+            </a>
+
+            <a href="CAStop_Explanation.html" class="paper-card card-castop">
+                <h2>CAStoP</h2>
+                <p>Cost-aware Stopping for BO</p>
+                <p>Gittins Index理論による最適停止戦略で無駄な評価を自動削減</p>
+            </a>
+
+            <a href="CArBO_Section3_Explanation_fixed.html" class="paper-card card-carbo">
+                <h2>CArBO</h2>
+                <p>Cost Apportioned Bayesian Optimization</p>
+                <p>クーリングパラメータで探索戦略を段階的に切り替える実用的手法</p>
+            </a>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="Summary_All_Papers.md" class="summary-link">
+                📊 全手法の比較まとめ
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>Created with Claude Code | 2024</p>
+        </div>
+    </div>
+</body>
+</html>

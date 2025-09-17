@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAStoP (Cost-aware Stopping for Bayesian Optimization) 解説</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Yu Gothic', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #16a085;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #95a5a6;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        h4 {
+            color: #95a5a6;
+            margin-top: 15px;
+        }
+        .mermaid {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #ecf0f1;
+            color: #16a085;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        pre code {
+            background-color: transparent;
+            color: #ecf0f1;
+            padding: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: #16a085;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .highlight {
+            background-color: #d4edda;
+            padding: 15px;
+            border-left: 4px solid #28a745;
+            margin: 20px 0;
+        }
+        .summary {
+            background-color: #e0f2f1;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #16a085;
+            margin: 30px 0;
+        }
+        .equation-box {
+            background-color: #f0f0f0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+            overflow-x: auto;
+        }
+        .definition {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-left: 4px solid #4caf50;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .problem-box {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-left: 4px solid #ff9800;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        strong {
+            color: #2c3e50;
+        }
+        .math-inline {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>CAStoP (Cost-aware Stopping for Bayesian Optimization) 解説</h1>
+
+<h2>1. CAStoPの革新</h2>
+
+<h3>従来のBO停止基準の問題点</h3>
+
+<h4>固定予算方式</h4>
+<div class="problem-box">
+<ul>
+    <li><strong>問題</strong>: 予算を使い切るまで探索を継続</li>
+    <li><strong>欠点</strong>: 改善が見込めない場合でも無駄な評価を実行</li>
+</ul>
+</div>
+
+<h4>ヒューリスティック基準</h4>
+<div class="problem-box">
+<ul>
+    <li><strong>問題</strong>: 理論的保証がない</li>
+    <li><strong>欠点</strong>: 早期停止で最適解を逃すリスク</li>
+</ul>
+</div>
+
+<h3>CAStoPの解決策</h3>
+
+<div class="highlight">
+<strong>「Pandora's Box Gittins Index理論に基づく最適停止戦略」</strong>
+<ul>
+    <li>各候補点の「開く価値」を理論的に評価</li>
+    <li>期待改善値とコストのトレードオフを最適化</li>
+    <li>結果：無駄な評価を削減しながら高性能を維持</li>
+</ul>
+</div>
+
+<h2>2. 理論的基盤：Pandora's Box問題</h2>
+
+<h3>2.1 問題設定</h3>
+
+<div class="definition">
+<strong>N個の箱があり、各箱iについて：</strong>
+<ul>
+    <li>開封コスト：$c_i$</li>
+    <li>報酬分布：$F_i$（事前にわかっている）</li>
+    <li>目的：期待純利益を最大化する順序で箱を開く</li>
+</ul>
+</div>
+
+<h3>2.2 Gittins Index</h3>
+
+<p>各箱のGittins Index：</p>
+
+<div class="equation-box">
+$$\sigma_i = \sup\{y : \mathbb{E}[\max(X_i, y)] - y \geq c_i\}$$
+</div>
+
+<p>ここで：</p>
+<ul>
+    <li>$X_i \sim F_i$：箱iから得られる報酬</li>
+    <li>$y$：既知の最大報酬（外部オプション）</li>
+    <li>$c_i$：箱iを開くコスト</li>
+</ul>
+
+<p><strong>最適戦略</strong>: Gittins Indexが最大の箱から順に開く</p>
+
+<h2>3. CAStoPアルゴリズム</h2>
+
+<h3>3.1 アルゴリズムフロー</h3>
+
+<div class="mermaid">
+flowchart TB
+    Start([開始])
+    Start --> Init["初期データD<br/>GP構築"]
+
+    Init --> Loop{継続判定}
+
+    Loop -->|継続| Compute["各候補点xのGittins Index計算<br/>σ(x) = sup{y : E[max(f(x),y)] - y ≥ c(x)}"]
+
+    Compute --> FindMax["最大Gittins Indexを持つ点を選択<br/>x* = argmax σ(x)"]
+
+    FindMax --> Check{"σ(x*) > f_max?"}
+
+    Check -->|はい| Evaluate["評価実行<br/>f(x*), c(x*)"]
+
+    Evaluate --> Update["データ更新<br/>D = D ∪ {x*, f(x*), c(x*)}<br/>f_max更新"]
+
+    Update --> Loop
+
+    Check -->|いいえ| Stop([停止])
+
+    Loop -->|予算枯渇| Stop
+
+    style Start fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
+    style Stop fill:#ffebee,stroke:#c62828,stroke-width:3px
+    style Check fill:#fff3e0,stroke:#ef6c00,stroke-width:3px
+</div>
+
+<h3>3.2 Gittins Index計算の詳細</h3>
+
+<div class="mermaid">
+flowchart LR
+    Input["点x, コストc(x)"]
+    Input --> GP["GPから予測分布<br/>f(x) ~ N(μ(x), σ²(x))"]
+
+    GP --> Binary["二分探索でσ(x)を計算<br/>σ(x) = sup{y : h(y) ≥ c(x)}"]
+
+    Binary --> Func["h(y) = E[max(f(x),y)] - y<br/>= μ(x)Φ((μ-y)/σ) + σφ((μ-y)/σ) + y(1-Φ((μ-y)/σ)) - y"]
+
+    Func --> Output["Gittins Index σ(x)"]
+
+    style Input fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Output fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+</div>
+
+<h2>4. 停止条件の理論的保証</h2>
+
+<h3>4.1 最適性の保証</h3>
+
+<p>Gittins Index理論により：</p>
+<ul>
+    <li>各ステップで期待純利益を最大化</li>
+    <li>停止時点で追加評価の期待利益 < コスト</li>
+</ul>
+
+<h3>4.2 累積コストの期待値</h3>
+
+<div class="equation-box">
+$$\mathbb{E}[\text{累積コスト}] \leq \sum_{i: \sigma_i > f^*} c_i$$
+</div>
+
+<p>ここで $f^*$ は真の最大値</p>
+
+<h2>5. 実装のポイント</h2>
+
+<h3>Algorithm 1: CAStoP</h3>
+
+<pre><code class="language-python"># 疑似コード
+D = initial_data
+f_max = max(D.y)
+
+while budget_remaining > 0:
+    # GPモデル構築
+    fit GP_f, GP_c using D
+
+    # 各候補点のGittins Index計算
+    for x in candidate_points:
+        μ, σ² = GP_f.predict(x)
+        c = GP_c.predict(x)
+        σ(x) = compute_gittins_index(μ, σ², c)
+
+    # 最大Gittins Indexの点を選択
+    x* = argmax σ(x)
+
+    # 停止判定
+    if σ(x*) <= f_max:
+        break  # 停止
+
+    # 評価実行
+    y = f(x*)
+    cost = c(x*)
+
+    # 更新
+    D = D ∪ {x*, y, cost}
+    f_max = max(f_max, y)
+    budget_remaining -= cost
+</code></pre>
+
+<h3>5.1 Gittins Index計算</h3>
+
+<pre><code class="language-python">def compute_gittins_index(μ, σ, c):
+    # 二分探索で解く
+    def h(y):
+        z = (μ - y) / σ
+        return μ * Φ(z) + σ * φ(z) - y * Φ(z)
+
+    # h(y) = c となる y を見つける
+    y_low, y_high = μ - 10*σ, μ + 10*σ
+
+    while y_high - y_low > 1e-6:
+        y_mid = (y_low + y_high) / 2
+        if h(y_mid) > c:
+            y_low = y_mid
+        else:
+            y_high = y_mid
+
+    return y_mid
+</code></pre>
+
+<h2>6. 実験結果</h2>
+
+<h3>6.1 合成関数での評価</h3>
+
+<table>
+    <tr>
+        <th>関数</th>
+        <th>CAStoPの優位性</th>
+    </tr>
+    <tr>
+        <td>Branin</td>
+        <td>早期停止で80%のコスト削減</td>
+    </tr>
+    <tr>
+        <td>Hartmann3</td>
+        <td>最適解発見後、即座に停止</td>
+    </tr>
+    <tr>
+        <td>Hartmann6</td>
+        <td>固定予算の60%で同等性能</td>
+    </tr>
+</table>
+
+<h3>6.2 ハイパーパラメータ最適化</h3>
+
+<h4>SVM on MNIST</h4>
+<ul>
+    <li><strong>タスク</strong>: SVMのC, γパラメータ最適化</li>
+    <li><strong>結果</strong>: 20回の評価で停止（固定予算は50回）</li>
+    <li><strong>性能</strong>: 最終精度は固定予算と同等</li>
+</ul>
+
+<h4>Random Forest</h4>
+<ul>
+    <li><strong>データセット</strong>: 10個のUCIデータセット</li>
+    <li><strong>平均コスト削減</strong>: 45%</li>
+    <li><strong>性能低下</strong>: なし</li>
+</ul>
+
+<h3>6.3 停止タイミングの分析</h3>
+
+<div class="mermaid">
+flowchart LR
+    Early["序盤<br/>積極的探索"]
+    Early --> Mid["中盤<br/>有望領域の絞り込み"]
+    Mid --> Late["後半<br/>Gittins Index低下"]
+    Late --> Stop["停止<br/>σ(x*) ≤ f_max"]
+
+    style Early fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Stop fill:#ffebee,stroke:#c62828,stroke-width:2px
+</div>
+
+<h2>7. CAStoPの利点と制限</h2>
+
+<h3>利点</h3>
+
+<ol>
+    <li><strong>理論的保証</strong>: Pandora's Box理論に基づく最適性</li>
+    <li><strong>自動停止</strong>: ヒューリスティック不要</li>
+    <li><strong>コスト効率</strong>: 無駄な評価を削減</li>
+    <li><strong>汎用性</strong>: 任意のコスト関数に対応</li>
+</ol>
+
+<h3>制限</h3>
+
+<ol>
+    <li><strong>GP仮定</strong>: ガウス過程の妥当性が必要</li>
+    <li><strong>計算コスト</strong>: Gittins Index計算のオーバーヘッド</li>
+    <li><strong>離散候補点</strong>: 連続空間では離散化が必要</li>
+</ol>
+
+<h2>8. 関連手法との比較</h2>
+
+<table>
+    <tr>
+        <th>手法</th>
+        <th>停止基準</th>
+        <th>理論保証</th>
+        <th>実装難易度</th>
+    </tr>
+    <tr>
+        <td>固定予算</td>
+        <td>予算枯渇</td>
+        <td>なし</td>
+        <td>簡単</td>
+    </tr>
+    <tr>
+        <td>改善率閾値</td>
+        <td>ヒューリスティック</td>
+        <td>なし</td>
+        <td>簡単</td>
+    </tr>
+    <tr>
+        <td>CAStoP</td>
+        <td>Gittins Index</td>
+        <td>あり</td>
+        <td>中程度</td>
+    </tr>
+    <tr>
+        <td>EI閾値</td>
+        <td>EI < ε</td>
+        <td>部分的</td>
+        <td>簡単</td>
+    </tr>
+</table>
+
+<div class="summary">
+<h2>まとめ</h2>
+<p>CAStoPは、<strong>Pandora's Box問題の理論</strong>を活用して、コスト考慮型ベイズ最適化に<strong>理論的に最適な停止戦略</strong>を導入。Gittins Indexによる評価で、各候補点の「探索する価値」を定量化し、無駄な評価を削減しながら高性能を維持。特に<strong>高コスト評価</strong>が必要な問題で効果的。</p>
+</div>
+
+</body>
+</html>

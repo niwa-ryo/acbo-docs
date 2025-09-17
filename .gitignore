@@ -1,0 +1,17 @@
+# Archive files
+*.tar.gz
+*.zip
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
